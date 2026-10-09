@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database ER Diagram - Patent Forms Module</title>
+  <style>
+    :root {
+      --bg: #121417;
+      --grid-color: rgba(255, 255, 255, 0.05);
+      --table-bg: #1a1e24;
+      --table-header-bg: #242a33;
+      --table-border: #323a46;
+      --table-row-hover: #222730;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --pk-color: #f59e0b;
+      --fk-color: #38bdf8;
+      --type-color: #a78bfa;
+      --link-color: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 24px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", monospace;
+      color: var(--text-main);
+      padding: 40px;
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    .header-bar {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--table-border);
+      padding-bottom: 20px;
+    }
+
+    .title-group h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-group p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      background: var(--table-bg);
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--table-border);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-pk { background: rgba(245, 158, 11, 0.2); color: var(--pk-color); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-fk { background: rgba(56, 189, 248, 0.2); color: var(--fk-color); border: 1px solid rgba(56, 189, 248, 0.4); }
+
+    .diagram-container {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(460px, 1fr));
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .db-table-card {
+      background: var(--table-bg);
+      border: 1px solid var(--table-border);
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .db-table-card:hover {
+      border-color: #4b5563;
+      transform: translateY(-2px);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .table-header {
+      background: var(--table-header-bg);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--table-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .table-comment {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .table-columns {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .table-columns tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s;
+    }
+
+    .table-columns tr:last-child {
+      border-bottom: none;
+    }
+
+    .table-columns tr:hover {
+      background: var(--table-row-hover);
+    }
+
+    .table-columns td {
+      padding: 8px 14px;
+      vertical-align: middle;
+    }
+
+    .col-key {
+      width: 48px;
+      text-align: center;
+    }
+
+    .col-name {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .col-type {
+      color: var(--type-color);
+      font-family: monospace;
+      font-size: 11px;
+    }
+
+    .col-comment {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .relation-banner {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 30px;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .relation-banner h3 {
+      font-size: 14px;
+      color: #93c5fd;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .relation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-main);
+      font-family: monospace;
+    }
+
+    .relation-item span.highlight {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <div class="title-group">
+      <h1>🏛️ Patent Forms Module & Database Schema</h1>
+      <p>Database: <strong>patent_forms_standalone_db</strong> (MySQL / MariaDB on Port 3307/3306)</p>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="badge badge-pk">PK</span> Primary Key</div>
+      <div class="legend-item"><span class="badge badge-fk">FK</span> Foreign Key / Join Ref</div>
+      <div class="legend-item"><span style="color:var(--type-color)">VARCHAR / INT</span> Types</div>
+    </div>
+  </div>
+
+  <div class="diagram-container">
+
+    <!-- TABLE 1: patentapplication -->
+    <div class="db-table-card">
+      <div class="table-header">
+        <div class="table-name">📄 patentapplication</div>
+        <div class="table-comment">Master Patent Registry</div>
+      </div>
+      <table class="table-columns">
+        <tr>
+          <td class="col-key"><span class="badge badge-pk">PK</span></td>
+          <td class="col-name">patentId</td>
+          <td class="col-type">INT(11) AUTO_INCREMENT</td>
+          <td class="col-comment">Primary Record Key</td>
+        </tr>
+        <tr>
+          <td class="col-key"><span class="badge badge-fk">KEY</span></td>
+          <td class="col-name">fileNo</td>
+          <td class="col-type">VARCHAR(250) UNIQUE</td>
+          <td class="col-comment">Unique File No (641D, 634P)</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">type</td>
+          <td class="col-type">VARCHAR(100)</td>
+          <td class="col-comment">'Patent' or 'Design'</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">clientRefNo</td>
+          <td class="col-type">VARCHAR(250)</td>
+          <td class="col-comment">Client Reference</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">applicationNo</td>
+          <td class="col-type">VARCHAR(250)</td>
+          <td class="col-comment">Statutory IPO App No</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">titleOfInvention</td>
+          <td class="col-type">TEXT</td>
+          <td class="col-comment">Full Invention Title</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">dateOfFiling</td>
+          <td class="col-type">DATE</td>
+          <td class="col-comment">Filing Date</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">priorityDate</td>
+          <td class="col-type">DATE</td>
+          <td class="col-comment">Priority Convention Date</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">typeOfApplication</td>
+          <td class="col-type">VARCHAR(150)</td>
+          <td class="col-comment">'Ordinary', 'Convention', etc.</td>
+        </tr>
+        <tr>
+          <td class="col-key"><span class="badge badge-fk">REF</span></td>
+          <td class="col-name">applicantsId</td>
+          <td class="col-type">VARCHAR(250)</td>
+          <td class="col-comment">CSV IDs -> applicants</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">inventorsData</td>
+          <td class="col-type">TEXT</td>
+          <td class="col-comment">Serialized inventor info</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TABLE 2: applicants -->
+    <div class="db-table-card">
+      <div class="table-header">
+        <div class="table-name">👥 applicants</div>
+        <div class="table-comment">Applicants & Inventors Directory</div>
+      </div>
+      <table class="table-columns">
+        <tr>
+          <td class="col-key"><span class="badge badge-pk">PK</span></td>
+          <td class="col-name">applicantId</td>
+          <td class="col-type">INT(11) AUTO_INCREMENT</td>
+          <td class="col-comment">Primary Key</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">applicantName</td>
+          <td class="col-type">VARCHAR(255) NOT NULL</td>
+          <td class="col-comment">Company / Person Name</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">applicantAddress</td>
+          <td class="col-type">TEXT</td>
+          <td class="col-comment">Postal Address for Service</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">applicantEmail</td>
+          <td class="col-type">VARCHAR(255)</td>
+          <td class="col-comment">Official Notification Email</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">applicantPhone</td>
+          <td class="col-type">VARCHAR(50)</td>
+          <td class="col-comment">Contact Phone Number</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">isDelete</td>
+          <td class="col-type">TINYINT(1) DEFAULT 0</td>
+          <td class="col-comment">0 = Active, 1 = Deleted</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TABLE 3: patentcountry -->
+    <div class="db-table-card">
+      <div class="table-header">
+        <div class="table-name">🌍 patentcountry</div>
+        <div class="table-comment">Section 8 Foreign Filings</div>
+      </div>
+      <table class="table-columns">
+        <tr>
+          <td class="col-key"><span class="badge badge-pk">PK</span></td>
+          <td class="col-name">pCountryId</td>
+          <td class="col-type">INT(11) AUTO_INCREMENT</td>
+          <td class="col-comment">Primary Key</td>
+        </tr>
+        <tr>
+          <td class="col-key"><span class="badge badge-fk">FK</span></td>
+          <td class="col-name">fileNo</td>
+          <td class="col-type">VARCHAR(250) NOT NULL</td>
+          <td class="col-comment">Links to patentapplication.fileNo</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">countryAbbreviation</td>
+          <td class="col-type">VARCHAR(255) NOT NULL</td>
+          <td class="col-comment">Country / Jurisdiction Name</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">countryDate</td>
+          <td class="col-type">VARCHAR(100)</td>
+          <td class="col-comment">Date of Application Abroad</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">countryComment</td>
+          <td class="col-type">VARCHAR(255)</td>
+          <td class="col-comment">Foreign Application Number</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">isStop</td>
+          <td class="col-type">TINYINT(1) DEFAULT 0</td>
+          <td class="col-comment">0 = Pending, 1 = Abandoned</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TABLE 4: patent_form_submissions -->
+    <div class="db-table-card">
+      <div class="table-header">
+        <div class="table-name">📝 patent_form_submissions</div>
+        <div class="table-comment">Forms, Drafts & Dynamic JSON Payloads</div>
+      </div>
+      <table class="table-columns">
+        <tr>
+          <td class="col-key"><span class="badge badge-pk">PK</span></td>
+          <td class="col-name">id</td>
+          <td class="col-type">INT(11) AUTO_INCREMENT</td>
+          <td class="col-comment">Primary Key</td>
+        </tr>
+        <tr>
+          <td class="col-key"><span class="badge badge-fk">FK</span></td>
+          <td class="col-name">file_no</td>
+          <td class="col-type">VARCHAR(250) NOT NULL</td>
+          <td class="col-comment">Links to patentapplication.fileNo</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">form_code</td>
+          <td class="col-type">VARCHAR(100) NOT NULL</td>
+          <td class="col-comment">e.g. indian_patent_form_1</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">form_title</td>
+          <td class="col-type">VARCHAR(255) NOT NULL</td>
+          <td class="col-comment">Statutory Display Title</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">form_data</td>
+          <td class="col-type">LONGTEXT NOT NULL</td>
+          <td class="col-comment">Complete JSON payload</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">status</td>
+          <td class="col-type">VARCHAR(50) DEFAULT 'draft'</td>
+          <td class="col-comment">'draft' or 'submitted'</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">created_at</td>
+          <td class="col-type">DATETIME DEFAULT CURRENT_TIMESTAMP</td>
+          <td class="col-comment">Created Timestamp</td>
+        </tr>
+        <tr>
+          <td class="col-key"></td>
+          <td class="col-name">updated_at</td>
+          <td class="col-type">DATETIME ON UPDATE CURRENT</td>
+          <td class="col-comment">Last Modified Timestamp</td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="relation-banner">
+    <h3>🔗 Relational Foreign Key Connections</h3>
+    <div class="relation-list">
+      <div class="relation-item">
+        ➜ <span class="highlight">patentcountry.fileNo</span> (Many) ───[Foreign Key]───► <span class="highlight">patentapplication.fileNo</span> (One)
+      </div>
+      <div class="relation-item">
+        ➜ <span class="highlight">patent_form_submissions.file_no</span> (Many) ───[Foreign Key]───► <span class="highlight">patentapplication.fileNo</span> (One)
+      </div>
+      <div class="relation-item">
+        ➜ <span class="highlight">patentapplication.applicantsId</span> (CSV) ───[FIND_IN_SET Join]───► <span class="highlight">applicants.applicantId</span> (Many-to-Many)
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
