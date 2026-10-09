@@ -1,0 +1,20 @@
+{
+  "name": "patent-forms-database-and-module",
+  "version": "1.0.0",
+  "description": "Brainiac IP Solutions - Standalone Patent Forms Builder & Auto-Fill Module",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "patent",
+    "forms",
+    "autofill",
+    "ipo",
+    "codeigniter"
+  ],
+  "author": "Brainiac IP Solutions",
+  "license": "ISC"
+}
