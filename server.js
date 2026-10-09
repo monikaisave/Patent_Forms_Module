@@ -150,6 +150,17 @@ function queryStandaloneMySql(action, params = {}) {
         exit;
       }
       
+      if ($action === "delete") {
+        $subId = intval($argv[2] ?? 0);
+        if ($subId > 0) {
+          $stmt = $mysqli->prepare("DELETE FROM patent_form_submissions WHERE id = ?");
+          $stmt->bind_param("i", $subId);
+          $stmt->execute();
+        }
+        echo json_encode(["success" => true]);
+        exit;
+      }
+      
       if ($action === "submissions") {
         $res = $mysqli->query("SELECT * FROM patent_form_submissions ORDER BY id DESC LIMIT 50");
         $list = [];
@@ -166,6 +177,7 @@ function queryStandaloneMySql(action, params = {}) {
     if (params.formCode) args.push(params.formCode);
     if (params.formTitle) args.push(params.formTitle);
     if (params.status) args.push(params.status);
+    if (params.subId !== undefined) args.push(String(params.subId));
 
     const inputData = params.formData ? (typeof params.formData === "string" ? params.formData : JSON.stringify(params.formData)) : undefined;
 
@@ -320,22 +332,49 @@ const server = http.createServer(async (req, res) => {
     // Save to separate MySQL: patent_forms_standalone_db
     const dbRes = queryStandaloneMySql("save", { fileNo, formCode, formTitle, formData, status });
 
-    // Also persist into local SQLite
-    const ins = db.prepare(`
-      INSERT INTO patent_form_submissions (file_no, form_code, form_title, form_data, status)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    const info = ins.run(fileNo, formCode, formTitle, formData, status);
+    // Also persist with deduplication into local SQLite
+    let subId = dbRes?.id;
+    try {
+      const existing = db.prepare("SELECT id FROM patent_form_submissions WHERE file_no = ? AND form_code = ?").get(fileNo, formCode);
+      if (existing) {
+        db.prepare(`
+          UPDATE patent_form_submissions 
+          SET form_title = ?, form_data = ?, status = ?, updated_at = CURRENT_TIMESTAMP 
+          WHERE id = ?
+        `).run(formTitle, formData, status, existing.id);
+        if (!subId) subId = existing.id;
+      } else {
+        const info = db.prepare(`
+          INSERT INTO patent_form_submissions (file_no, form_code, form_title, form_data, status)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(fileNo, formCode, formTitle, formData, status);
+        if (!subId) subId = info.lastInsertRowid;
+      }
+    } catch (e) {}
 
     sendJson(200, {
       success: true,
-      id: dbRes?.id || info.lastInsertRowid,
-      message: "Form draft saved successfully into patent_forms_standalone_db!"
+      id: subId,
+      message: "Form saved successfully!"
     });
     return;
   }
 
-  // 4. List Submissions
+  // 4. Delete Submission
+  if ((pathname.startsWith("/api/submissions/") || pathname.includes("api_delete")) && req.method === "DELETE") {
+    const parts = pathname.split("/");
+    const subId = parseInt(parts[parts.length - 1], 10);
+    if (!isNaN(subId) && subId > 0) {
+      queryStandaloneMySql("delete", { subId });
+      try {
+        db.prepare("DELETE FROM patent_form_submissions WHERE id = ?").run(subId);
+      } catch (e) {}
+    }
+    sendJson(200, { success: true, message: "Submission deleted successfully" });
+    return;
+  }
+
+  // 5. List Submissions
   if (pathname.includes("api_submissions") || (pathname === "/api/submissions" && req.method === "GET")) {
     const dbRes = queryStandaloneMySql("submissions");
     if (dbRes && dbRes.success && dbRes.submissions && dbRes.submissions.length > 0) {

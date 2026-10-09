@@ -240,32 +240,32 @@ ${columns},
     let success = false;
     let message = "";
 
-    // 1. Try CodeIgniter REST API with real MySQL DB
-    try {
-      const ciBase = window.CI_BASE_URL || (typeof window !== "undefined" && window.location.origin ? window.location.origin + "/" : "");
-      const ciRes = await fetch(ciBase + "index.php/PatentForms/api_save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileNo: payload.fileNo,
-          formCode: payload.formSchemaId,
-          formTitle: payload.formTitle || "Patent Form",
-          formData: payload.data,
-          status: payload.status || "draft"
-        })
-      });
-      if (ciRes.ok) {
-        const d = await ciRes.json();
-        if (d.success) {
-          success = true;
-          message = d.message || "Saved to CodeIgniter MySQL Database!";
+    // 1. If running inside CodeIgniter ERP frame with explicit CI_BASE_URL
+    if (window.CI_BASE_URL) {
+      try {
+        const ciRes = await fetch(window.CI_BASE_URL + "index.php/PatentForms/api_save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileNo: payload.fileNo,
+            formCode: payload.formSchemaId,
+            formTitle: payload.formTitle || "Patent Form",
+            formData: payload.data,
+            status: payload.status || "draft"
+          })
+        });
+        if (ciRes.ok) {
+          const d = await ciRes.json();
+          if (d.success) {
+            return { success: true, message: d.message || "Saved to CodeIgniter MySQL Database!" };
+          }
         }
+      } catch (e) {
+        console.warn("Could not save to CodeIgniter MySQL API directly:", e);
       }
-    } catch (e) {
-      console.warn("Could not save to CodeIgniter MySQL API directly:", e);
     }
 
-    // 2. Also save to Node SQL backend API
+    // 2. Otherwise save once via /api/submissions (Node + Standalone MySQL)
     try {
       const nodeRes = await fetch("/api/submissions", {
         method: "POST",
@@ -275,8 +275,7 @@ ${columns},
       if (nodeRes.ok) {
         const d = await nodeRes.json();
         if (d.success) {
-          success = true;
-          message = d.message || "Saved to SQL Database!";
+          return { success: true, message: d.message || "Saved to SQL Database!" };
         }
       }
     } catch (e) {

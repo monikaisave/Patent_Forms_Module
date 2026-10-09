@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `patent_form_submissions` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_file_form` (`file_no`, `form_code`),
   KEY `idx_file_no` (`file_no`),
   KEY `idx_form_code` (`form_code`),
   KEY `idx_status` (`status`)
