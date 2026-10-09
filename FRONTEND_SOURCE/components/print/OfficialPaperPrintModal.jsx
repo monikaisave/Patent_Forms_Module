@@ -117,8 +117,46 @@ export function OfficialPaperPrintModal({
   const appNo = formData.app_number || formData.app_no || formData.applicationNo || "202421039821";
   const filingFee = formData.filing_fee || "8,000";
 
+  // Allow closing via Escape key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && onClose) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="official-modal-backdrop" onClick={onClose}>
+      {/* Prominent Floating Close Button (Always visible on top-right) */}
+      <button 
+        className="floating-close-corner-btn" 
+        onClick={onClose}
+        title="Close PDF Preview (Esc)"
+        style={{
+          position: "fixed",
+          top: "14px",
+          right: "20px",
+          zIndex: 100000005,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          background: "#dc2626",
+          color: "#ffffff",
+          border: "2px solid #ffffff",
+          padding: "8px 18px",
+          borderRadius: "50px",
+          fontSize: "14px",
+          fontWeight: 800,
+          cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.6)"
+        }}
+      >
+        <X size={16} /> Close PDF (Esc)
+      </button>
+
       <div className="official-modal-wrapper" onClick={(e) => e.stopPropagation()}>
         
         {/* Top Floating Control Bar (Hidden on print) */}
